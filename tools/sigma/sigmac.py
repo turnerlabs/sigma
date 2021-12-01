@@ -205,7 +205,7 @@ def main():
         order = 0
         for conf_name in cmdargs.config:
             try:
-                sigmaconfig = scm.get(conf_name)
+                sigmaconfig = scm.get(conf_name) # Parses Conf File, Fetches Basic Info From Config File
                 if sigmaconfig.order is not None:
                     if sigmaconfig.order <= order and not cmdargs.shoot_yourself_in_the_foot:
                         print("The configurations were provided in the wrong order (order key check in config file)", file=sys.stderr)
@@ -278,7 +278,7 @@ def main():
                 f = sigmafile
             else:
                 f = sigmafile.open(encoding='utf-8')
-            parser = SigmaCollectionParser(f, sigmaconfigs, rulefilter, sigmafile)
+            parser = SigmaCollectionParser(f, sigmaconfigs, rulefilter, sigmafile) # Start of interesting parsing
             results = parser.generate(backend)
 
             nb_result = len(list(copy.deepcopy(results)))

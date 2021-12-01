@@ -42,6 +42,9 @@ class SplunkBackend(SingleTextQueryBackend):
     mapExpression = "%s=%s"
     mapListsSpecialHandling = True
     mapListValueExpression = "%s IN %s"
+    options = SingleTextQueryBackend.options + (
+        ("stats_command", "stats", "Default stats command used within the condition statement", None),
+    )
 
     def generateMapItemListNode(self, key, value):
         if not set([type(val) for val in value]).issubset({str, int}):
@@ -56,17 +59,17 @@ class SplunkBackend(SingleTextQueryBackend):
         if agg.groupfield == None:
             if agg.aggfunc_notrans == 'count':
                 if agg.aggfield == None :
-                    return " | eventstats count as val | search val %s %s" % (agg.cond_op, agg.condition)
+                    return " | %s count as val | search val %s %s" % (self.stats_command, agg.cond_op, agg.condition)
                 else:
                     agg.aggfunc_notrans = 'dc'
-            return " | eventstats %s(%s) as val | search val %s %s" % (agg.aggfunc_notrans, agg.aggfield or "", agg.cond_op, agg.condition)
+            return " | %s %s(%s) as val | search val %s %s" % (self.stats_command, agg.aggfunc_notrans, agg.aggfield or "", agg.cond_op, agg.condition)
         else:
             if agg.aggfunc_notrans == 'count':
                 if agg.aggfield == None :
-                    return " | eventstats count as val by %s| search val %s %s" % (agg.groupfield, agg.cond_op, agg.condition)
+                    return " | %s count as val by %s| search val %s %s" % (self.stats_command, agg.groupfield, agg.cond_op, agg.condition)
                 else:
                     agg.aggfunc_notrans = 'dc'
-            return " | eventstats %s(%s) as val by %s | search val %s %s" % (agg.aggfunc_notrans, agg.aggfield or "", agg.groupfield or "", agg.cond_op, agg.condition)
+            return " | %s %s(%s) as val by %s | search val %s %s" % (self.stats_command, agg.aggfunc_notrans, agg.aggfield or "", agg.groupfield or "", agg.cond_op, agg.condition)
 
 
     def generate(self, sigmaparser):
