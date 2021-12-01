@@ -75,10 +75,17 @@ class SigmaCollectionParser:
 
     def generate(self, backend):
         """Calls backend for all parsed rules"""
-        return filter(
-                lambda x: bool(x),      # filter None's and empty strings
-                [ backend.generate(parser) for parser in self.parsers ]
-                )
+        backend_name = backend.identifier
+        rules = list()
+        for parser in self.parsers:
+            yaml = parser.parsedyaml
+            search_prefix = yaml.get("search_prefix", {}).get(backend_name, "")
+            search_postfix = yaml.get("search_postfix", {}).get(backend_name, "")
+            baserule = backend.generate(parser)
+            # Ensure prefix and postfix don't interfere with filtering Nones and Empty Strings
+            rule = search_prefix + baserule + search_postfix if baserule else baserule
+            rules.append(rule)
+        return filter(lambda x: bool(x), rules) # filter None's and empty strings
 
     def __iter__(self):
         return iter([parser.parsedyaml for parser in self.parsers])
